@@ -1,0 +1,36 @@
+body {
+  background-color: #050505;
+  color: #f4f4f5;
+  font-family: 'Vazirmatn', sans-serif;
+}
+
+/* کادرهای مشکی با خطوط زرد */
+.cyber-box {
+  background-color: #0b0b0e;
+  border: 1px solid rgba(250, 204, 21, 0.45);
+  box-shadow: 0 0 20px rgba(250, 204, 21, 0.05);
+}
+
+.cyber-box:hover {
+  border-color: rgba(250, 204, 21, 0.85);
+}
+
+/* استایل تب فعال */
+.tab-btn.active {
+  background-color: #facc15;
+  color: #000000;
+  box-shadow: 0 0 12px rgba(250, 204, 21, 0.4);
+}
+
+/* اسکرول‌بار مشکی و زرد */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+::-webkit-scrollbar-thumb {
+  background: #facc15;
+  border-radius: 4px;
+}
