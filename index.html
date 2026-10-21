@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BTC-Pair Live Scanner | اسکنر زنده جفت‌ارز بیت‌کوین</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- نوار وضعیت بالای سایت -->
+  <div class="bg-black border-b border-yellow-400/50 px-4 py-2 text-xs">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-yellow-400 text-black font-black">
+          <span class="w-2 h-2 rounded-full bg-black animate-ping"></span>
+          LIVE SCANNER
+        </span>
+        <span id="status-text" class="text-zinc-300 font-medium">در حال اسکن زنده بازار به پیر بیت‌کوین...</span>
+      </div>
+      <div class="flex items-center gap-5 font-mono">
+        <div>قیمت لحظه‌ای بیت‌کوین: <strong id="btc-price" class="text-yellow-400">---</strong></div>
+        <div>بروزرسانی خودکار: <strong id="timer-val" class="text-yellow-400">60s</strong></div>
+        <button id="refresh-btn" class="px-3 py-1 rounded bg-zinc-900 border border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black font-bold transition">
+          اسکن مجدد الان
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- هدر و منوی ۳ بخش اصلی -->
+  <header class="bg-[#09090b] border-b-2 border-yellow-400 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col lg:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-lg bg-black border-2 border-yellow-400 flex items-center justify-center text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.3)]">
+          <i data-lucide="radar" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="text-lg md:text-xl font-black text-white">
+            LIVE COIN WATCH <span class="text-yellow-400">BTC-PAIR ENGINE</span>
+          </h1>
+          <p class="text-xs text-zinc-400">غربالگری لحظه‌ای کوین‌های دارای ورود حجم بر پایه بیت‌کوین (بدون کوین از پیش تعیین‌شده)</p>
+        </div>
+      </div>
+
+      <!-- دکمه‌های جابجایی بین ۳ بخش -->
+      <nav class="flex flex-wrap items-center gap-2 bg-black p-1.5 rounded-xl border border-yellow-400/60">
+        <button data-tab="sec1" class="tab-btn active px-4 py-2 rounded-lg text-xs font-bold transition">
+          ۱. اسکرینر حجم و پیر BTC
+        </button>
+        <button data-tab="sec2" class="tab-btn px-4 py-2 rounded-lg text-xs font-bold text-zinc-400 hover:text-yellow-400 transition">
+          ۲. فاندامنتال و اخبار کوین‌های یافت‌شده
+        </button>
+        <button data-tab="sec3" class="tab-btn px-4 py-2 rounded-lg text-xs font-bold text-zinc-400 hover:text-yellow-400 transition">
+          ۳. ورود و خروج پول لحظه‌ای (Money Flow)
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto w-full px-4 py-6 flex-1 space-y-6">
+
+    <!-- ==========================================
+         بخش اول: اسکرینر پیر بیت‌کوین و قیف فیلتر حجم
+         ========================================== -->
+    <section id="sec1" class="space-y-5">
+      <!-- پنل قیف فیلتر دقیقاً طبق روش ویدیو -->
+      <div class="cyber-box p-4 rounded-xl">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-yellow-400/20 pb-3 mb-4">
+          <div class="flex items-center gap-2 text-yellow-400 font-bold text-sm">
+            <i data-lucide="filter" class="w-4 h-4"></i>
+            <span>قیف فیلتر استراتژی ویدیو (واحد پایه: BTC | حذف شت‌کوین‌های کم‌حجم)</span>
+          </div>
+          <div class="text-xs text-zinc-400">
+            کوین‌های عبوری از فیلتر در این لحظه: <strong id="passed-count" class="text-yellow-400 font-mono text-sm">0</strong> کوین
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <!-- شرط حجم به بیت‌کوین -->
+          <div>
+            <label class="block text-[11px] text-zinc-400 mb-1">قیف حداقل حجم ۲۴ ساعته (Volume >= BTC):</label>
+            <select id="vol-filter" class="w-full bg-black border border-yellow-400/70 rounded-lg px-3 py-2 text-xs text-white focus:outline-none">
+              <option value="1000" selected>حداقل ۱,۰۰۰ بیت‌کوین (استاندارد ویدیو برای فیوچرز)</option>
+              <option value="500">حداقل ۵۰۰ بیت‌کوین (مناسب اسپات و فیوچرز)</option>
+              <option value="100">حداقل ۱۰۰ بیت‌کوین (شروع موج کوین‌های رده میانی)</option>
+              <option value="0">بدون فیلتر حجم (نمایش همه کوین‌ها)</option>
+            </select>
+          </div>
+
+          <!-- مرتب‌سازی -->
+          <div>
+            <label class="block text-[11px] text-zinc-400 mb-1">مرتب‌سازی بر اساس (در مقابل بیت‌کوین):</label>
+            <select id="sort-filter" class="w-full bg-black border border-yellow-400/70 rounded-lg px-3 py-2 text-xs text-white focus:outline-none">
+              <option value="change24h_desc" selected>بیشترین صعود ۲۴س به BTC (کاندید لانگ / اسپات)</option>
+              <option value="change24h_asc">بیشترین ریزش ۲۴س به BTC (کاندید شورت)</option>
+              <option value="vol_desc">بیشترین حجم معاملاتی به BTC</option>
+              <option value="change7d_desc">قوی‌ترین روند ۷ روزه به BTC</option>
+            </select>
+          </div>
+
+          <!-- فیلتر جهت روند -->
+          <div>
+            <label class="block text-[11px] text-zinc-400 mb-1">فیلتر جهت ستاپ:</label>
+            <select id="side-filter" class="w-full bg-black border border-yellow-400/70 rounded-lg px-3 py-2 text-xs text-white focus:outline-none">
+              <option value="ALL" selected>همه کوین‌های عبوری از قیف حجم</option>
+              <option value="LONG">فقط صعودی به BTC (سبز - مناسب لانگ/اسپات)</option>
+              <option value="SHORT">فقط نزولی به BTC (قرمز - مناسب شورت)</option>
+            </select>
+          </div>
+
+          <!-- جستجو -->
+          <div>
+            <label class="block text-[11px] text-zinc-400 mb-1">جستجوی نماد یا نام کوین:</label>
+            <input id="search-input" type="text" placeholder="مثلا SOL, SUI, FET..." class="w-full bg-black border border-yellow-400/70 rounded-lg px-3 py-2 text-xs text-white focus:outline-none" />
+          </div>
+        </div>
+      </div>
+
+      <!-- جدول زنده کوین‌ها -->
+      <div class="cyber-box rounded-xl overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-right text-xs">
+            <thead class="bg-black border-b-2 border-yellow-400 text-yellow-400">
+              <tr>
+                <th class="p-3.5">#</th>
+                <th class="p-3.5">کوین</th>
+                <th class="p-3.5">قیمت به بیت‌کوین (BTC Pair)</th>
+                <th class="p-3.5">قیمت تتری</th>
+                <th class="p-3.5">۱ ساعته (BTC)</th>
+                <th class="p-3.5">۲۴ ساعته (BTC)</th>
+                <th class="p-3.5">۷ روزه (BTC)</th>
+                <th class="p-3.5">حجم ۲۴س (به BTC)</th>
+                <th class="p-3.5">چارت ۷ روزه (کندل ۱ ساعته به BTC)</th>
+                <th class="p-3.5">سیگنال روش ویدیو</th>
+                <th class="p-3.5 text-center">چارت‌ها</th>
+              </tr>
+            </thead>
+            <tbody id="screener-tbody" class="divide-y divide-yellow-400/20"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         بخش دوم: فاندامنتال و اخبار پروژه‌های خوب
+         ========================================== -->
+    <section id="sec2" class="hidden space-y-5">
+      <div class="cyber-box p-4 rounded-xl flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-black text-yellow-400">بررسی فاندامنتال، توکنومیکس و اخبار کوین‌های صفحه اول</h2>
+          <p class="text-xs text-zinc-400 mt-1">طبق نکته ویدیو: وقتی کوینی در اسکرینر حجم خورد و پیر BTC آن صعودی شد، اینجا چک کن پروژه منطقی است یا شت‌کوین.</p>
+        </div>
+        <select id="fund-filter" class="bg-black border border-yellow-400 rounded-lg px-3 py-2 text-xs text-yellow-400 font-bold">
+          <option value="ALL">همه کوین‌های صفحه اول</option>
+          <option value="TOP_FUND">فقط پروژه‌های با فاندامنتال قوی (امتیاز بالای ۷۵)</option>
+        </select>
+      </div>
+
+      <div id="fundamental-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    </section>
+
+    <!-- ==========================================
+         بخش سوم: ورود و خروج لحظه‌ای پول از کوین‌های صفحه اول
+         ========================================== -->
+    <section id="sec3" class="hidden space-y-5">
+      <!-- خلاصه آماری جریان پول -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="cyber-box p-4 rounded-xl">
+          <span class="text-xs text-zinc-400">بیشترین ورود پول هوشمند در کوین‌های فعلی:</span>
+          <div id="top-inflow" class="text-lg font-black text-emerald-400 font-mono mt-1">---</div>
+        </div>
+        <div class="cyber-box p-4 rounded-xl">
+          <span class="text-xs text-zinc-400">بیشترین خروج پول (فشار فروش تیکرها):</span>
+          <div id="top-outflow" class="text-lg font-black text-rose-500 font-mono mt-1">---</div>
+        </div>
+        <div class="cyber-box p-4 rounded-xl">
+          <span class="text-xs text-zinc-400">میانگین قدرت خریداران مارکت (Taker Buy CVD):</span>
+          <div id="avg-cvd" class="text-lg font-black text-yellow-400 font-mono mt-1">---</div>
+        </div>
+      </div>
+
+      <!-- جدول کامل ورود و خروج پول برای کوین‌های صفحه اول -->
+      <div class="cyber-box rounded-xl overflow-hidden">
+        <div class="p-4 border-b border-yellow-400/30 flex items-center justify-between">
+          <h3 class="text-sm font-black text-yellow-400">جریان لحظه‌ای ورود و خروج پول و قدرت Taker Market Buy (برای کوین‌های صفحه اول)</h3>
+          <span class="text-[11px] text-zinc-400">بر اساس حجم سفارشات تیکر و گردش نقدینگی ۲۴ ساعته</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-right text-xs">
+            <thead class="bg-black border-b-2 border-yellow-400 text-yellow-400">
+              <tr>
+                <th class="p-3.5">کوین</th>
+                <th class="p-3.5">حجم کل (BTC)</th>
+                <th class="p-3.5">خرید مارکت تیکرها (Inflow)</th>
+                <th class="p-3.5">فروش مارکت تیکرها (Outflow)</th>
+                <th class="p-3.5">خالص ورود/خروج پول (Net Flow)</th>
+                <th class="p-3.5 w-64">نوار قدرت خریدار در برابر فروشنده (Taker CVD)</th>
+                <th class="p-3.5">وضعیت پول هوشمند</th>
+              </tr>
+            </thead>
+            <tbody id="moneyflow-tbody" class="divide-y divide-yellow-400/20"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="bg-black border-t border-yellow-400/50 py-4 text-center text-xs text-zinc-500 mt-8">
+    طراحی شده بر اساس متد فیلتر جفت‌ارز بیت‌کوین (Live Coin Watch BTC-Pair Method) • آماده میزبانی در GitHub Pages
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
